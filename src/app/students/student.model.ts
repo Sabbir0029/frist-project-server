@@ -120,7 +120,7 @@ const studentSchema = new Schema({
   },
 });
 
-// pre save
+// pre save middillwar/hook
 studentSchema.pre("save", async function (next) {
   const user = this;
   user.password = await bcrypt.hash(
@@ -130,10 +130,15 @@ studentSchema.pre("save", async function (next) {
   next();
 });
 
-// post save
+// post save middillwa/hook
 studentSchema.post("save", async function (doc, next) {
   doc.password = "";
   next();
+});
+
+// Aggregation Hooks
+studentSchema.pre("aggregate", async function () {
+  await this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
 });
 
 export const Student = model<TypeOfStudents>("Student", studentSchema);
