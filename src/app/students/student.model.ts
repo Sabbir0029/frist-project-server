@@ -1,5 +1,7 @@
 import { model, Schema } from "mongoose";
 import { TypeOfGuardian, TypeOfStudents } from "./student.interface";
+import bcrypt from "bcrypt";
+import config from "../config";
 
 const guardianSchema = new Schema<TypeOfGuardian>({
   fatherName: {
@@ -118,4 +120,20 @@ const studentSchema = new Schema({
   },
 });
 
-export const Student = model<TypeOfStudents>('Student', studentSchema);
+// pre save
+studentSchema.pre("save", async function (next) {
+  const user = this;
+  user.password = await bcrypt.hash(
+    user.password,
+    Number(config.bcrypt_saltRounds)
+  );
+  next();
+});
+
+// post save
+studentSchema.post("save", async function (doc, next) {
+  doc.password = "";
+  next();
+});
+
+export const Student = model<TypeOfStudents>("Student", studentSchema);
